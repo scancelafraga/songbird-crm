@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -10,16 +11,33 @@ import datetime
 from typing import Optional
 
 # --- SECURITY CONFIG ---
-SECRET_KEY = "SUPER_SECRET_KEY_CHANGE_THIS_IN_PROD_PLEASE" # Cambiar en producción
+# En un futuro ideal, esto también debería venir de una variable de entorno
+SECRET_KEY = "SUPER_SECRET_KEY_CHANGE_THIS_IN_PROD_PLEASE" 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# --- DATABASE ---
-SQLALCHEMY_DATABASE_URL = "sqlite:///./messages.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+# --- DATABASE CONFIGURATION (PostgreSQL + SQLite Fallback) ---
+# 1. Buscamos la variable en Render
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# 2. Configuración de argumentos (SQLite necesita check_same_thread, Postgres no)
+connect_args = {}
+
+if DATABASE_URL:
+    # Estamos en Render (Producción)
+    # Fix para SQLAlchemy: Render da "postgres://", necesitamos "postgresql://"
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+else:
+    # Estamos en Local (Tu PC) -> Usamos SQLite
+    DATABASE_URL = "sqlite:///./messages.db"
+    connect_args = {"check_same_thread": False}
+
+# 3. Crear el motor de la base de datos
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -29,9 +47,9 @@ class MessageDB(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     email = Column(String, index=True)
-    phone = Column(String, default="") # <--- NUEVO CAMPO PHONE
+    phone = Column(String, default="") 
     content = Column(Text)
-    status = Column(String, default="pending") # Default: 'pending'
+    status = Column(String, default="pending")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class UserDB(Base):
@@ -40,16 +58,24 @@ class UserDB(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
+# Crea las tablas si no existen (Fundamental para Postgres nuevo)
 Base.metadata.create_all(bind=engine)
 
 # --- FASTAPI APP ---
 app = FastAPI()
 
-origins = ["*"] # <--- CAMBIO IMPORTANTE: Permitir a todos (para producción)
+# --- CORS: A QUIÉN DEJAMOS ENTRAR ---
+origins = [
+    "http://localhost:5173",                      # Tu PC (Vite)
+    "http://127.0.0.1:5173",                      # Tu PC (Alternativo)
+    "https://songbirdcolumbia.com",               # TU DOMINIO OFICIAL
+    "https://www.songbirdcolumbia.com",           # Tu dominio con www
+    "https://stirring-queijadas-18cefb.netlify.app" # Tu link de Netlify
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -86,12 +112,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 # --- STARTUP: CREATE ROBUST ADMIN ---
 @app.on_event("startup")
 def startup_event():
+    # Esto se ejecuta cada vez que Render inicia el servidor
     db = SessionLocal()
-    # CAMBIAMOS EL USUARIO POR DEFECTO AQUÍ
     ADMIN_USER = "master_admin"
-    ADMIN_PASS = "SongBird$2026!Secure" # <--- ¡NUEVA CONTRASEÑA ROBUSTA!
+    ADMIN_PASS = "SongBird$2026!Secure" 
     
-    if not db.query(UserDB).filter(UserDB.username == ADMIN_USER).first():
+    # Verificamos si ya existe el admin (en Postgres nuevo NO existirá, así que lo crea)
+    user = db.query(UserDB).filter(UserDB.username == ADMIN_USER).first()
+    if not user:
         print(f"--- CREATING SUPER ADMIN: {ADMIN_USER} ---")
         db.add(UserDB(username=ADMIN_USER, hashed_password=get_password_hash(ADMIN_PASS)))
         db.commit()
@@ -101,7 +129,7 @@ def startup_event():
 class MessageCreate(BaseModel):
     name: str
     email: str
-    phone: str # <--- Agregado al esquema
+    phone: str 
     content: str
 
 class MessageUpdate(BaseModel):
@@ -117,7 +145,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
 
 @app.post("/contact/")
 def create_message(msg: MessageCreate, db: Session = Depends(get_db)):
-    # Guardamos también el teléfono
     db.add(MessageDB(name=msg.name, email=msg.email, phone=msg.phone, content=msg.content))
     db.commit()
     return {"status": "ok"}
