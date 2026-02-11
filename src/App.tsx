@@ -60,7 +60,7 @@ const Login = () => {
                     <p className="text-gray-400 text-sm mt-2">Secure Login Area</p>
                 </div>
                 
-                {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm font-medium border border-red-100 text-center">{error}</div>}
+                {error && <div className="bg-black-50 text-black-600 p-3 rounded-lg mb-6 text-sm font-medium border border-black-100 text-center">{error}</div>}
 
                 <div className="mb-5">
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
@@ -198,12 +198,12 @@ const Dashboard = () => {
             {/* Top Bar */}
             <header className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-black text-blue-900 tracking-tight">Songbird<span className="text-red-600">CRM</span></h1>
+                    <h1 className="text-2xl font-black text-blue-900 tracking-tight">Songbird<span className="text-black-600">CRM</span></h1>
                     <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-500 uppercase tracking-wider">Dashboard</span>
                 </div>
                 <div className="flex gap-4 items-center">
                     <Link to="/" className="text-sm font-medium text-gray-500 hover:text-black">View Website</Link>
-                    <button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }} className="text-sm font-bold text-red-600 hover:text-red-800 bg-red-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                    <button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }} className="text-sm font-bold text-black-600 hover:text-black-800 bg-black-50 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
                         <LogOut size={16} /> Logout
                     </button>
                 </div>
@@ -328,7 +328,7 @@ const Dashboard = () => {
                                                     </a>
                                                     <button 
                                                         onClick={() => handleDelete(msg.id)}
-                                                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        className="p-2 text-black-400 hover:text-black-600 hover:bg-black-50 rounded-lg transition-colors"
                                                         title="Delete Lead"
                                                     >
                                                         <Trash2 size={18} />
@@ -393,7 +393,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-900 text-white font-sans selection:bg-red-600 selection:text-white">
+    <div className="min-h-screen bg-blue-900 text-white font-sans selection:bg-black-600 selection:text-white">
       {/* HEADER */}
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-md border-b border-white/10 ${
         isScrolled ? 'bg-blue-900/95 py-2 shadow-xl' : 'bg-blue-900/80 py-4'
@@ -403,14 +403,14 @@ const LandingPage = () => {
             <img src="/assets/logo.png" alt="Songbird Logo" className="logo-force" />
             <div className="border-l border-white/20 pl-4 hidden sm:block">
               <span className="block font-extrabold text-lg md:text-xl uppercase tracking-tighter">Songbird Columbia</span>
-              <span className="block text-[10px] text-red-600 font-bold tracking-[2px] uppercase">Web Development</span>
+              <span className="block text-[10px] text-black-600 font-bold tracking-[2px] uppercase">Web Development</span>
             </div>
           </a>
           <nav className="hidden md:flex items-center gap-10">
             <ul className="flex gap-8 font-semibold text-sm">
-              <li><a href="#services" className="hover:text-red-600 transition-colors">Services</a></li>
-              <li><a href="#about" className="hover:text-red-600 transition-colors">About</a></li>
-              <li><a href="#contact" className="hover:text-red-600 transition-colors">Contact</a></li>
+              <li><a href="#services" className="hover:text-black-600 transition-colors">Services</a></li>
+              <li><a href="#about" className="hover:text-black-600 transition-colors">About</a></li>
+              <li><a href="#contact" className="hover:text-black-600 transition-colors">Contact</a></li>
             </ul>
             <Link to="/login" className="text-white/50 text-xs hover:text-white flex items-center gap-1">
                 <Lock size={12}/> Admin
@@ -427,7 +427,7 @@ const LandingPage = () => {
              <li><a href="#services" onClick={() => setIsMenuOpen(false)}>Services</a></li>
              <li><a href="#about" onClick={() => setIsMenuOpen(false)}>About</a></li>
              <li><a href="#contact" onClick={() => setIsMenuOpen(false)}>Contact</a></li>
-             <li><Link to="/login" className="text-red-600">Admin Login</Link></li>
+             <li><Link to="/login" className="text-black-600">Admin Login</Link></li>
            </ul>
         </div>
       </header>
@@ -448,12 +448,12 @@ const LandingPage = () => {
                 Songbird Columbia builds landing pages designed to turn visitors into real customers. One page. One goal. Flat pricing.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-8">
-                <a href="#contact" className="bg-red-600 px-10 py-4 rounded-full font-bold text-lg hover:-translate-y-1 transition-transform shadow-lg">Get Started</a>
+                <a href="#contact" className="bg-black-600 px-10 py-4 rounded-full font-bold text-lg hover:-translate-y-1 transition-transform shadow-lg">Get Started</a>
                 <a href="#services" className="bg-white/10 backdrop-blur-md border border-white/20 px-10 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all">View Services</a>
               </div>
             </div>
             <div className="relative flex justify-center items-center">
-              <div className="absolute w-72 h-72 bg-red-600/20 blur-[100px] -z-10 rounded-full"></div>
+              <div className="absolute w-72 h-72 bg-black-600/20 blur-[100px] -z-10 rounded-full"></div>
               <img 
                 src="/assets/mockup.png" 
                 alt="Website Mockup" 
@@ -487,7 +487,7 @@ const LandingPage = () => {
     <div>
       <h2 className="text-4xl md:text-5xl font-extrabold text-blue-900 mb-6 leading-tight">About <br />Songbird Columbia</h2>
       <p className="text-gray-600 text-lg mb-6 leading-relaxed">We specialize in landing pages, not bloated websites. We believe focus is the key to conversion.</p>
-      <div className="p-4 border-l-4 border-red-600 bg-gray-50 italic font-medium">
+      <div className="p-4 border-l-4 border-black-600 bg-gray-50 italic font-medium">
         "When you work with us, you talk directly with the builder. No middleman, no confusion."
       </div>
     </div>
@@ -495,7 +495,7 @@ const LandingPage = () => {
       <div className="bg-blue-900 text-white p-10 md:p-16 rounded-xl text-center w-full max-w-sm shadow-2xl">
         {/* ACÁ CAMBIAMOS EL PRECIO */}
         <span className="block text-7xl font-black mb-2">$700</span> 
-        <span className="uppercase tracking-[4px] font-bold text-red-600">Flat Price</span>
+        <span className="uppercase tracking-[4px] font-bold text-black-600">Flat Price</span>
       </div>
     </div>
   </div>
@@ -517,7 +517,7 @@ const LandingPage = () => {
                     className="w-full flex justify-between items-center py-6 text-left font-bold text-lg md:text-xl group"
                     onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   >
-                    <span className="group-hover:text-red-600 transition-colors">{item.q}</span>
+                    <span className="group-hover:text-black-600 transition-colors">{item.q}</span>
                     <Plus className={`transition-transform duration-300 ${openFaq === index ? 'rotate-45' : ''}`} />
                   </button>
                   <div className={`overflow-hidden transition-all duration-300 ${openFaq === index ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
@@ -596,12 +596,12 @@ const LandingPage = () => {
                 <button 
                     disabled={status === 'sending' || status === 'success'}
                     className={`w-full py-3 rounded-lg font-bold flex justify-center items-center gap-2 transition-all ${
-                        status === 'success' ? 'bg-green-500' : 'bg-red-600 hover:bg-red-700'
+                        status === 'success' ? 'bg-green-500' : 'bg-black-600 hover:bg-black-700'
                     } text-white`}
                 >
                     {status === 'sending' ? 'Sending...' : status === 'success' ? 'Sent!' : <><Send size={18} /> Send Message</>}
                 </button>
-                {status === 'error' && <p className="text-red-500 text-sm mt-2 text-center">Something went wrong. Try WhatsApp.</p>}
+                {status === 'error' && <p className="text-black-500 text-sm mt-2 text-center">Something went wrong. Try WhatsApp.</p>}
             </form>
           </div>
         </section>
@@ -613,8 +613,8 @@ const LandingPage = () => {
 
 // Componente helper para tarjetas de servicios
 const ServiceCard = ({ icon, title, desc }: { icon: React.ReactElement, title: string, desc: string }) => (
-  <div className="bg-white/5 p-10 rounded-xl border border-white/10 hover:border-red-600/50 hover:bg-white/10 transition-all duration-300 group">
-    <div className="text-red-600 mb-6 transform group-hover:scale-110 group-hover:-translate-y-1 transition-transform inline-block">
+  <div className="bg-white/5 p-10 rounded-xl border border-white/10 hover:border-black-600/50 hover:bg-white/10 transition-all duration-300 group">
+    <div className="text-black-600 mb-6 transform group-hover:scale-110 group-hover:-translate-y-1 transition-transform inline-block">
       {React.cloneElement(icon, { size: 44 } as React.SVGProps<SVGSVGElement>)}
     </div>
     <h3 className="text-xl font-bold mb-3">{title}</h3>
