@@ -21,35 +21,29 @@ const Login = () => {
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+        e.preventDefault();
+        setError('');
 
-    const params = new URLSearchParams();
-    params.append('username', username.trim());
-    params.append('password', password);
+        const params = new URLSearchParams();
+        params.append('username', username.trim());
+        params.append('password', password);
 
-    try {
-        console.log("Intentando login...");
-        const response = await axios.post(`${API_URL}/token`, params);
-        
-        if (response.status === 200) {
-            console.log("¡Éxito total!");
-            localStorage.setItem('token', response.data.access_token);
-            // Si el token se guardó, nos vamos de acá
-            window.location.href = "/dashboard";
+        try {
+            const response = await axios.post(`${API_URL}/token`, params, {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            
+            if (response.status === 200) {
+                localStorage.setItem('token', response.data.access_token);
+                // Usamos esto para asegurar que el navegador limpie cualquier bloqueo
+                window.location.href = "/dashboard";
+            }
+        } catch (err: any) {
+            console.error("Error capturado:", err.response?.data);
+            const detail = err.response?.data?.detail || "Invalid credentials";
+            setError(detail);
         }
-    } catch (err: any) {
-        // Esto nos dirá qué está fallando exactamente
-        console.error("Error capturado:", err);
-        const detail = err.response?.data?.detail || "Error desconocido";
-        setError(`Error: ${detail}`);
-        
-        // Si el servidor dio 200 pero Axios falló igual, forzamos la entrada
-        if (err.status === 200) {
-            window.location.href = "/dashboard";
-        }
-    }
-};
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans">
@@ -234,28 +228,33 @@ const Dashboard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                        <input 
-                            type="text" 
-                            placeholder="Search name, email, phone..." 
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-france/20 focus:border-blue-france transition-all bg-white text-black text-sm"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                    <input 
+                        type="text"
+                        name="sb_search_lead" // Nombre único para evitar conflictos con extensiones
+                        autoComplete="off"     // Evita que el navegador sugiera datos guardados
+                        placeholder="Search name, email, phone..." 
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all bg-white text-black text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                     </div>
-                    <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                        {['all', 'pending', 'contacted', 'recontact', 'won', 'lost'].map(status => (
-                            <button 
-                                key={status}
-                                onClick={() => setFilterStatus(status)}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold capitalize transition-colors whitespace-nowrap ${
-                                    filterStatus === status ? 'bg-blue-france text-white shadow-md shadow-blue-france/20' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
-                                }`}
-                            >
-                                {status === 'all' ? 'All Leads' : status.replace('-', ' ')}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+        {['all', 'pending', 'contacted', 'recontact', 'won', 'lost'].map(status => (
+            <button 
+                key={status}
+                type="button" // Especificamos que es un botón para evitar envíos de form accidentales
+                onClick={() => setFilterStatus(status)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all whitespace-nowrap ${
+                    filterStatus === status 
+                    ? 'bg-blue-900 text-white shadow-md shadow-blue-900/20' 
+                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
+                }`}
+            >
+                {status === 'all' ? 'All Leads' : status.replace('-', ' ')}
+            </button>
+        ))}
+    </div>
+</div>
 
                 {/* Main Table */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
