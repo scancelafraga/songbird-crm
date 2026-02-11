@@ -70,7 +70,7 @@ origins = [
     "http://127.0.0.1:5173",
     "https://songbirdcolumbia.com",      # <--- Tu dominio oficial
     "https://www.songbirdcolumbia.com",  # <--- Versión con WWW
-    "https://stirring-queijadas-18cefb.netlify.app" # Tu link de Netlify
+    "https://songbirdcolumbia.netlify.app" # Tu link de Netlify
 ]
 
 app.add_middleware(
@@ -115,7 +115,7 @@ def startup_event():
     # Esto se ejecuta cada vez que Render inicia el servidor
     db = SessionLocal()
     ADMIN_USER = "master_admin"
-    ADMIN_PASS = "SongBird$2026!Secure" 
+    ADMIN_PASS = "SongbirdColumbia2026" 
     
     # Verificamos si ya existe el admin (en Postgres nuevo NO existirá, así que lo crea)
     user = db.query(UserDB).filter(UserDB.username == ADMIN_USER).first()
