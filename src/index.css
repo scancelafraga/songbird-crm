@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-blue-france: #0033a0;
+  --color-blue-france-dark: #002b85;
+  --color-red-accent: #e63946;
+  --radius-brand: 12px;
+}
+
+/* --- CLASE DE EMERGENCIA PARA EL LOGO --- */
+.logo-force {
+  height: 50px !important;       /* Fuerza la altura */
+  width: auto !important;        /* Mantiene la proporción */
+  max-width: 200px !important;   /* Evita que se ensanche */
+  object-fit: contain;           /* Asegura que la imagen entre en la caja */
+  display: block;
+}

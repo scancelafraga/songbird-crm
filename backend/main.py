@@ -1,0 +1,143 @@
+from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+import datetime
+from typing import Optional
+
+# --- SECURITY CONFIG ---
+SECRET_KEY = "SUPER_SECRET_KEY_CHANGE_THIS_IN_PROD_PLEASE" # Cambiar en producción
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+# --- DATABASE ---
+SQLALCHEMY_DATABASE_URL = "sqlite:///./messages.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+# --- DB MODELS ---
+class MessageDB(Base):
+    __tablename__ = "messages"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    email = Column(String, index=True)
+    phone = Column(String, default="") # <--- NUEVO CAMPO PHONE
+    content = Column(Text)
+    status = Column(String, default="pending") # Default: 'pending'
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class UserDB(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
+Base.metadata.create_all(bind=engine)
+
+# --- FASTAPI APP ---
+app = FastAPI()
+
+origins = ["*"] # <--- CAMBIO IMPORTANTE: Permitir a todos (para producción)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# --- AUTH HELPERS ---
+def verify_password(plain, hashed): return pwd_context.verify(plain, hashed)
+def get_password_hash(pwd): return pwd_context.hash(pwd)
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None: raise HTTPException(status_code=401)
+    except JWTError:
+        raise HTTPException(status_code=401)
+    user = db.query(UserDB).filter(UserDB.username == username).first()
+    if user is None: raise HTTPException(status_code=401)
+    return user
+
+# --- STARTUP: CREATE ROBUST ADMIN ---
+@app.on_event("startup")
+def startup_event():
+    db = SessionLocal()
+    # CAMBIAMOS EL USUARIO POR DEFECTO AQUÍ
+    ADMIN_USER = "master_admin"
+    ADMIN_PASS = "SongBird$2026!Secure" # <--- ¡NUEVA CONTRASEÑA ROBUSTA!
+    
+    if not db.query(UserDB).filter(UserDB.username == ADMIN_USER).first():
+        print(f"--- CREATING SUPER ADMIN: {ADMIN_USER} ---")
+        db.add(UserDB(username=ADMIN_USER, hashed_password=get_password_hash(ADMIN_PASS)))
+        db.commit()
+    db.close()
+
+# --- SCHEMAS ---
+class MessageCreate(BaseModel):
+    name: str
+    email: str
+    phone: str # <--- Agregado al esquema
+    content: str
+
+class MessageUpdate(BaseModel):
+    status: str
+
+# --- ROUTES ---
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(UserDB).filter(UserDB.username == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect credentials")
+    return {"access_token": create_access_token(data={"sub": user.username}), "token_type": "bearer"}
+
+@app.post("/contact/")
+def create_message(msg: MessageCreate, db: Session = Depends(get_db)):
+    # Guardamos también el teléfono
+    db.add(MessageDB(name=msg.name, email=msg.email, phone=msg.phone, content=msg.content))
+    db.commit()
+    return {"status": "ok"}
+
+@app.get("/messages/")
+def get_messages(db: Session = Depends(get_db), current_user: UserDB = Depends(get_current_user)):
+    return db.query(MessageDB).order_by(MessageDB.created_at.desc()).all()
+
+@app.patch("/messages/{msg_id}/status")
+def update_status(msg_id: int, update: MessageUpdate, db: Session = Depends(get_db), current_user: UserDB = Depends(get_current_user)):
+    msg = db.query(MessageDB).filter(MessageDB.id == msg_id).first()
+    if not msg: raise HTTPException(status_code=404)
+    msg.status = update.status
+    db.commit()
+    return {"status": "updated"}
+
+@app.delete("/messages/{msg_id}")
+def delete_message(msg_id: int, db: Session = Depends(get_db), current_user: UserDB = Depends(get_current_user)):
+    msg = db.query(MessageDB).filter(MessageDB.id == msg_id).first()
+    if not msg: raise HTTPException(status_code=404)
+    db.delete(msg)
+    db.commit()
+    return {"status": "deleted"}
