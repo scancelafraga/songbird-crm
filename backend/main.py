@@ -64,18 +64,18 @@ Base.metadata.create_all(bind=engine)
 # --- FASTAPI APP ---
 app = FastAPI()
 
-# --- CORS: A QUIÉN DEJAMOS ENTRAR ---
+# --- CORS CONFIG ---
 origins = [
-    "http://localhost:5173",                      # Tu PC (Vite)
-    "http://127.0.0.1:5173",                      # Tu PC (Alternativo)
-    "https://songbirdcolumbia.com",               # TU DOMINIO OFICIAL
-    "https://www.songbirdcolumbia.com",           # Tu dominio con www
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://songbirdcolumbia.com",      # <--- Tu dominio oficial
+    "https://www.songbirdcolumbia.com",  # <--- Versión con WWW
     "https://stirring-queijadas-18cefb.netlify.app" # Tu link de Netlify
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, 
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
