@@ -8,12 +8,10 @@ import {
 } from 'lucide-react';
 
 // --- CONFIGURACIÓN DE API ---
-// Cuando lo subas a tu dominio, cambiarás la primera url por la de tu backend real.
-const API_URL = import.meta.env.PROD 
-  ? "https://songbird-api.onrender.com" 
-  : "http://127.0.0.1:8000";
+// La dejamos fija para asegurar que apunte a producción
+const API_URL = "https://songbird-api.onrender.com";
 
-// --- COMPONENTE 1: LOGIN (ENGLISH) ---
+// --- COMPONENTE 1: LOGIN (MOTOR FETCH + ANTI-BLOQUEO) ---
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -24,24 +22,34 @@ const Login = () => {
         e.preventDefault();
         setError('');
 
-        const params = new URLSearchParams();
-        params.append('username', username.trim());
-        params.append('password', password);
+        const formData = new URLSearchParams();
+        formData.append('username', username.trim());
+        formData.append('password', password);
 
         try {
-            const response = await axios.post(`${API_URL}/token`, params, {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
+            console.log("Iniciando login con FETCH...");
             
-            if (response.status === 200) {
-                localStorage.setItem('token', response.data.access_token);
-                // Usamos esto para asegurar que el navegador limpie cualquier bloqueo
+            // Usamos FETCH en lugar de Axios para el Login (más robusto contra CORS)
+            const response = await fetch(`${API_URL}/token`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("¡Token recibido!", data);
+                localStorage.setItem('token', data.access_token);
+                // Redirección forzada para limpiar estado y caché
                 window.location.href = "/dashboard";
+            } else {
+                const errData = await response.json();
+                console.error("Error servidor:", errData);
+                setError(errData.detail || "Credenciales incorrectas");
             }
-        } catch (err: any) {
-            console.error("Error capturado:", err.response?.data);
-            const detail = err.response?.data?.detail || "Invalid credentials";
-            setError(detail);
+        } catch (error: any) {
+            console.error("Error de red:", error);
+            setError("Error de conexión. Tu navegador bloqueó la solicitud (posible CORS o extensión).");
         }
     };
 
@@ -49,7 +57,7 @@ const Login = () => {
         <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans">
             <form onSubmit={handleLogin} className="bg-white p-10 rounded-xl shadow-xl w-full max-w-md border border-gray-100">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-black text-blue-france">Admin Access</h2>
+                    <h2 className="text-3xl font-black text-blue-900">Admin Access</h2>
                     <p className="text-gray-400 text-sm mt-2">Secure Login Area</p>
                 </div>
                 
@@ -61,7 +69,9 @@ const Login = () => {
                         <User className="absolute left-3 top-3 text-gray-400" size={18} />
                         <input 
                             type="text" 
-                            className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-france/50 focus:border-blue-france text-black transition-all"
+                            name="sb_user_x" // Nombre único anti-bloqueo
+                            autoComplete="off" // Apaga el autocompletar
+                            className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-900 text-black transition-all"
                             placeholder="Enter username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -74,14 +84,16 @@ const Login = () => {
                         <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
                         <input 
                             type="password" 
-                            className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-france/50 focus:border-blue-france text-black transition-all"
+                            name="sb_pass_x" // Nombre único anti-bloqueo
+                            autoComplete="off" // Apaga el autocompletar
+                            className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900/50 focus:border-blue-900 text-black transition-all"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
                 </div>
-                <button type="submit" className="w-full bg-blue-france text-white py-3.5 rounded-lg font-bold hover:bg-blue-800 transition shadow-lg shadow-blue-france/30">
+                <button type="submit" className="w-full bg-blue-900 text-white py-3.5 rounded-lg font-bold hover:bg-blue-800 transition shadow-lg shadow-blue-900/30">
                     Sign In
                 </button>
                 <div className="mt-6 text-center">
@@ -92,7 +104,7 @@ const Login = () => {
     );
 };
 
-// --- COMPONENTE 2: CRM DASHBOARD (ENGLISH + ROBUST) ---
+// --- COMPONENTE 2: CRM DASHBOARD (FULL) ---
 interface Message { 
     id: number; 
     name: string; 
@@ -187,7 +199,7 @@ const Dashboard = () => {
             {/* Top Bar */}
             <header className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-black text-blue-france tracking-tight">Songbird<span className="text-red-accent">CRM</span></h1>
+                    <h1 className="text-2xl font-black text-blue-900 tracking-tight">Songbird<span className="text-red-600">CRM</span></h1>
                     <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-500 uppercase tracking-wider">Dashboard</span>
                 </div>
                 <div className="flex gap-4 items-center">
@@ -206,7 +218,7 @@ const Dashboard = () => {
                             <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Leads</p>
                             <p className="text-4xl font-black text-gray-900 mt-2">{stats.total}</p>
                         </div>
-                        <div className="bg-blue-50 p-3 rounded-full text-blue-france"><User size={24} /></div>
+                        <div className="bg-blue-50 p-3 rounded-full text-blue-900"><User size={24} /></div>
                     </div>
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                         <div>
@@ -228,33 +240,31 @@ const Dashboard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                    <input 
-                        type="text"
-                        name="sb_search_lead" // Nombre único para evitar conflictos con extensiones
-                        autoComplete="off"     // Evita que el navegador sugiera datos guardados
-                        placeholder="Search name, email, phone..." 
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all bg-white text-black text-sm"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                        <input 
+                            type="text" 
+                            name="sb_search_lead"
+                            autoComplete="off"
+                            placeholder="Search name, email, phone..." 
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all bg-white text-black text-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-        {['all', 'pending', 'contacted', 'recontact', 'won', 'lost'].map(status => (
-            <button 
-                key={status}
-                type="button" // Especificamos que es un botón para evitar envíos de form accidentales
-                onClick={() => setFilterStatus(status)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all whitespace-nowrap ${
-                    filterStatus === status 
-                    ? 'bg-blue-900 text-white shadow-md shadow-blue-900/20' 
-                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
-                }`}
-            >
-                {status === 'all' ? 'All Leads' : status.replace('-', ' ')}
-            </button>
-        ))}
-    </div>
-</div>
+                    <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                        {['all', 'pending', 'contacted', 'recontact', 'won', 'lost'].map(status => (
+                            <button 
+                                key={status}
+                                type="button"
+                                onClick={() => setFilterStatus(status)}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold capitalize transition-colors whitespace-nowrap ${
+                                    filterStatus === status ? 'bg-blue-900 text-white shadow-md shadow-blue-900/20' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
+                                }`}
+                            >
+                                {status === 'all' ? 'All Leads' : status.replace('-', ' ')}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
                 {/* Main Table */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -347,7 +357,7 @@ const Dashboard = () => {
     );
 };
 
-// --- COMPONENTE 3: LANDING PAGE (WITH PHONE INPUT) ---
+// --- COMPONENTE 3: LANDING PAGE (FULL) ---
 const LandingPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -384,24 +394,24 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-blue-france text-white font-sans selection:bg-red-accent selection:text-white">
+    <div className="min-h-screen bg-blue-900 text-white font-sans selection:bg-red-600 selection:text-white">
       {/* HEADER */}
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-md border-b border-white/10 ${
-        isScrolled ? 'bg-blue-france-dark/95 py-2 shadow-xl' : 'bg-blue-france/80 py-4'
+        isScrolled ? 'bg-blue-900/95 py-2 shadow-xl' : 'bg-blue-900/80 py-4'
       }`}>
         <div className="container mx-auto px-6 flex justify-between items-center">
           <a href="#hero" className="flex items-center gap-4 group">
             <img src="/assets/logo.png" alt="Songbird Logo" className="logo-force" />
             <div className="border-l border-white/20 pl-4 hidden sm:block">
               <span className="block font-extrabold text-lg md:text-xl uppercase tracking-tighter">Songbird Columbia</span>
-              <span className="block text-[10px] text-red-accent font-bold tracking-[2px] uppercase">Web Development</span>
+              <span className="block text-[10px] text-red-600 font-bold tracking-[2px] uppercase">Web Development</span>
             </div>
           </a>
           <nav className="hidden md:flex items-center gap-10">
             <ul className="flex gap-8 font-semibold text-sm">
-              <li><a href="#services" className="hover:text-red-accent transition-colors">Services</a></li>
-              <li><a href="#about" className="hover:text-red-accent transition-colors">About</a></li>
-              <li><a href="#contact" className="hover:text-red-accent transition-colors">Contact</a></li>
+              <li><a href="#services" className="hover:text-red-600 transition-colors">Services</a></li>
+              <li><a href="#about" className="hover:text-red-600 transition-colors">About</a></li>
+              <li><a href="#contact" className="hover:text-red-600 transition-colors">Contact</a></li>
             </ul>
             <Link to="/login" className="text-white/50 text-xs hover:text-white flex items-center gap-1">
                 <Lock size={12}/> Admin
@@ -413,12 +423,12 @@ const LandingPage = () => {
         </div>
         
         {/* Mobile Menu */}
-        <div className={`md:hidden absolute top-full left-0 w-full bg-blue-france-dark border-b border-white/10 overflow-hidden transition-all duration-300 ${isMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className={`md:hidden absolute top-full left-0 w-full bg-blue-900 border-b border-white/10 overflow-hidden transition-all duration-300 ${isMenuOpen ? 'max-h-80 opacity-100' : 'max-h-0 opacity-0'}`}>
            <ul className="flex flex-col p-8 gap-6 font-bold text-center">
              <li><a href="#services" onClick={() => setIsMenuOpen(false)}>Services</a></li>
              <li><a href="#about" onClick={() => setIsMenuOpen(false)}>About</a></li>
              <li><a href="#contact" onClick={() => setIsMenuOpen(false)}>Contact</a></li>
-             <li><Link to="/login" className="text-red-accent">Admin Login</Link></li>
+             <li><Link to="/login" className="text-red-600">Admin Login</Link></li>
            </ul>
         </div>
       </header>
@@ -439,16 +449,16 @@ const LandingPage = () => {
                 Songbird Columbia builds landing pages designed to turn visitors into real customers. One page. One goal. Flat pricing.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-8">
-                <a href="#contact" className="bg-red-accent px-10 py-4 rounded-full font-bold text-lg hover:-translate-y-1 transition-transform shadow-lg">Get Started</a>
+                <a href="#contact" className="bg-red-600 px-10 py-4 rounded-full font-bold text-lg hover:-translate-y-1 transition-transform shadow-lg">Get Started</a>
                 <a href="#services" className="bg-white/10 backdrop-blur-md border border-white/20 px-10 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all">View Services</a>
               </div>
             </div>
             <div className="relative flex justify-center items-center">
-              <div className="absolute w-72 h-72 bg-red-accent/20 blur-[100px] -z-10 rounded-full"></div>
+              <div className="absolute w-72 h-72 bg-red-600/20 blur-[100px] -z-10 rounded-full"></div>
               <img 
                 src="/assets/mockup.png" 
                 alt="Website Mockup" 
-                className="w-full max-w-lg rounded-brand shadow-2xl border border-white/10 md:rotate-y-[-10deg] md:rotate-x-[5deg] hover:rotate-0 transition-all duration-700 ease-out"
+                className="w-full max-w-lg rounded-xl shadow-2xl border border-white/10 md:rotate-y-[-10deg] md:rotate-x-[5deg] hover:rotate-0 transition-all duration-700 ease-out"
               />
             </div>
           </div>
@@ -476,23 +486,23 @@ const LandingPage = () => {
         <section id="about" className="bg-white text-black py-24 px-6">
           <div className="container mx-auto grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-extrabold text-blue-france mb-6 leading-tight">About <br />Songbird Columbia</h2>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-blue-900 mb-6 leading-tight">About <br />Songbird Columbia</h2>
               <p className="text-gray-600 text-lg mb-6 leading-relaxed">We specialize in landing pages, not bloated websites. We believe focus is the key to conversion.</p>
-              <div className="p-4 border-l-4 border-red-accent bg-gray-50 italic font-medium">
+              <div className="p-4 border-l-4 border-red-600 bg-gray-50 italic font-medium">
                 "When you work with us, you talk directly with the builder. No middleman, no confusion."
               </div>
             </div>
             <div className="flex justify-center">
-              <div className="bg-blue-france text-white p-10 md:p-16 rounded-brand text-center w-full max-w-sm shadow-2xl">
+              <div className="bg-blue-900 text-white p-10 md:p-16 rounded-xl text-center w-full max-w-sm shadow-2xl">
                 <span className="block text-7xl font-black mb-2">$300</span>
-                <span className="uppercase tracking-[4px] font-bold text-red-accent">Flat Price</span>
+                <span className="uppercase tracking-[4px] font-bold text-red-600">Flat Price</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="py-24 px-6 bg-blue-france text-white">
+        <section id="faq" className="py-24 px-6 bg-blue-900 text-white">
           <div className="container mx-auto max-w-3xl">
             <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-12">Frequently Asked Questions</h2>
             <div className="space-y-4">
@@ -507,7 +517,7 @@ const LandingPage = () => {
                     className="w-full flex justify-between items-center py-6 text-left font-bold text-lg md:text-xl group"
                     onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   >
-                    <span className="group-hover:text-red-accent transition-colors">{item.q}</span>
+                    <span className="group-hover:text-red-600 transition-colors">{item.q}</span>
                     <Plus className={`transition-transform duration-300 ${openFaq === index ? 'rotate-45' : ''}`} />
                   </button>
                   <div className={`overflow-hidden transition-all duration-300 ${openFaq === index ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
@@ -520,7 +530,7 @@ const LandingPage = () => {
         </section>
 
         {/* CONTACT */}
-        <section id="contact" className="py-24 px-6 bg-white text-blue-france">
+        <section id="contact" className="py-24 px-6 bg-white text-blue-900">
           <div className="container mx-auto max-w-4xl grid md:grid-cols-2 gap-12">
             <div>
                 <h2 className="text-4xl font-black mb-6">Let's build something great.</h2>
@@ -537,7 +547,7 @@ const LandingPage = () => {
                         <User className="absolute left-3 top-3 text-gray-400" size={20} />
                         <input 
                           type="text" required 
-                          className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-france text-black"
+                          className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
                           placeholder="John Doe"
                           value={formData.name}
                           onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -550,7 +560,7 @@ const LandingPage = () => {
                         <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
                         <input 
                           type="email" required 
-                          className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-france text-black"
+                          className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
                           placeholder="john@example.com"
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -558,14 +568,14 @@ const LandingPage = () => {
                     </div>
                 </div>
 
-                {/* NEW PHONE FIELD */}
+                {/* PHONE FIELD */}
                 <div className="mb-4">
                     <label className="block text-sm font-bold mb-2 text-gray-700">Phone</label>
                     <div className="relative">
                         <Phone className="absolute left-3 top-3 text-gray-400" size={20} />
                         <input 
                           type="tel" required 
-                          className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-france text-black"
+                          className="w-full pl-10 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
                           placeholder="+1 (555) 000-0000"
                           value={formData.phone}
                           onChange={(e) => setFormData({...formData, phone: e.target.value})}
@@ -577,7 +587,7 @@ const LandingPage = () => {
                     <label className="block text-sm font-bold mb-2 text-gray-700">Message</label>
                     <textarea 
                       required rows={4}
-                      className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-france text-black"
+                      className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-900 text-black"
                       placeholder="Tell us about your project..."
                       value={formData.content}
                       onChange={(e) => setFormData({...formData, content: e.target.value})}
@@ -586,7 +596,7 @@ const LandingPage = () => {
                 <button 
                     disabled={status === 'sending' || status === 'success'}
                     className={`w-full py-3 rounded-lg font-bold flex justify-center items-center gap-2 transition-all ${
-                        status === 'success' ? 'bg-green-500' : 'bg-red-accent hover:bg-red-600'
+                        status === 'success' ? 'bg-green-500' : 'bg-red-600 hover:bg-red-700'
                     } text-white`}
                 >
                     {status === 'sending' ? 'Sending...' : status === 'success' ? 'Sent!' : <><Send size={18} /> Send Message</>}
@@ -596,15 +606,15 @@ const LandingPage = () => {
           </div>
         </section>
       </main>
-      <footer className="py-8 bg-blue-france-dark text-center text-white/40 text-sm">© 2026 Songbird Columbia</footer>
+      <footer className="py-8 bg-blue-950 text-center text-white/40 text-sm">© 2026 Songbird Columbia</footer>
     </div>
   );
 };
 
 // Componente helper para tarjetas de servicios
 const ServiceCard = ({ icon, title, desc }: { icon: React.ReactElement, title: string, desc: string }) => (
-  <div className="bg-white/5 p-10 rounded-brand border border-white/10 hover:border-red-accent/50 hover:bg-white/10 transition-all duration-300 group">
-    <div className="text-red-accent mb-6 transform group-hover:scale-110 group-hover:-translate-y-1 transition-transform inline-block">
+  <div className="bg-white/5 p-10 rounded-xl border border-white/10 hover:border-red-600/50 hover:bg-white/10 transition-all duration-300 group">
+    <div className="text-red-600 mb-6 transform group-hover:scale-110 group-hover:-translate-y-1 transition-transform inline-block">
       {React.cloneElement(icon, { size: 44 } as React.SVGProps<SVGSVGElement>)}
     </div>
     <h3 className="text-xl font-bold mb-3">{title}</h3>
