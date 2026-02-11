@@ -24,17 +24,23 @@ const Login = () => {
         e.preventDefault();
         setError('');
 
-        const formData = new URLSearchParams();
-        formData.append('username', username);
-        formData.append('password', password);
+        const params = new URLSearchParams();
+        params.append('username', username.trim()); 
+        params.append('password', password);
 
         try {
-            const response = await axios.post(`${API_URL}/token`, formData);
+            // Agregamos los headers manualmente para que no haya duda
+            const response = await axios.post(`${API_URL}/token`, params, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+            
             localStorage.setItem('token', response.data.access_token);
             navigate('/dashboard');
-        } catch (err) {
+        } catch (err: any) {
             setError('Invalid credentials. Please try again.');
-            console.error(err);
+            console.error("Error detallado:", err.response?.data);
         }
     };
 
