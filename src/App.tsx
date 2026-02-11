@@ -21,27 +21,29 @@ const Login = () => {
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
+    e.preventDefault();
+    setError('');
 
-        const params = new URLSearchParams();
-        params.append('username', username.trim()); 
-        params.append('password', password);
+    const params = new URLSearchParams();
+    params.append('username', username.trim());
+    params.append('password', password);
 
-        try {
-            // Agregamos los headers manualmente para que no haya duda
-            const response = await axios.post(`${API_URL}/token`, params, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
-            
+    try {
+        const response = await axios.post(`${API_URL}/token`, params);
+        
+        // Si llegamos acá y el status fue 200, ¡tenemos el token!
+        console.log("¡LOGIN EXITOSO!", response.data);
+        
+        if (response.data.access_token) {
             localStorage.setItem('token', response.data.access_token);
-            navigate('/dashboard');
-        } catch (err: any) {
-            setError('Invalid credentials. Please try again.');
-            console.error("Error detallado:", err.response?.data);
+            // Forzamos el redireccionamiento
+            window.location.href = "/dashboard"; 
         }
+    } catch (err: any) {
+        // Solo entra acá si el status NO es 200 (ej: 400, 401, 500)
+        console.error("Error real del servidor:", err.response?.data);
+        setError('Invalid credentials or server error.');
+    }
     };
 
     return (
