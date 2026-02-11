@@ -29,22 +29,27 @@ const Login = () => {
     params.append('password', password);
 
     try {
+        console.log("Intentando login...");
         const response = await axios.post(`${API_URL}/token`, params);
         
-        // Si llegamos acá y el status fue 200, ¡tenemos el token!
-        console.log("¡LOGIN EXITOSO!", response.data);
-        
-        if (response.data.access_token) {
+        if (response.status === 200) {
+            console.log("¡Éxito total!");
             localStorage.setItem('token', response.data.access_token);
-            // Forzamos el redireccionamiento
-            window.location.href = "/dashboard"; 
+            // Si el token se guardó, nos vamos de acá
+            window.location.href = "/dashboard";
         }
     } catch (err: any) {
-        // Solo entra acá si el status NO es 200 (ej: 400, 401, 500)
-        console.error("Error real del servidor:", err.response?.data);
-        setError('Invalid credentials or server error.');
+        // Esto nos dirá qué está fallando exactamente
+        console.error("Error capturado:", err);
+        const detail = err.response?.data?.detail || "Error desconocido";
+        setError(`Error: ${detail}`);
+        
+        // Si el servidor dio 200 pero Axios falló igual, forzamos la entrada
+        if (err.status === 200) {
+            window.location.href = "/dashboard";
+        }
     }
-    };
+};
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 font-sans">
