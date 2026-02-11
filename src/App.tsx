@@ -10,7 +10,7 @@ import {
 // --- CONFIGURACIÓN DE API ---
 // Cuando lo subas a tu dominio, cambiarás la primera url por la de tu backend real.
 const API_URL = import.meta.env.PROD 
-  ? "http://127.0.0.1:8000" // <--- AQUÍ PONDRÁS TU URL DE RENDER LUEGO
+  ? "https://songbird-api.onrender.com" 
   : "http://127.0.0.1:8000";
 
 // --- COMPONENTE 1: LOGIN (ENGLISH) ---
