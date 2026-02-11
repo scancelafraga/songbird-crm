@@ -109,19 +109,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     if user is None: raise HTTPException(status_code=401)
     return user
 
-# --- STARTUP: CREATE ROBUST ADMIN ---
+# --- STARTUP: CREATE ADMIN ---
 @app.on_event("startup")
 def startup_event():
-    # Esto se ejecuta cada vez que Render inicia el servidor
     db = SessionLocal()
-    ADMIN_USER = "master_admin"
-    ADMIN_PASS = "SongbirdColumbia2026" 
+    # CAMBIAMOS EL NOMBRE PARA FORZAR UNO NUEVO
+    ADMIN_USER = "admin_final"  
+    ADMIN_PASS = "Songbird2026" 
     
-    # Verificamos si ya existe el admin (en Postgres nuevo NO existirá, así que lo crea)
     user = db.query(UserDB).filter(UserDB.username == ADMIN_USER).first()
     if not user:
         print(f"--- CREATING SUPER ADMIN: {ADMIN_USER} ---")
-        db.add(UserDB(username=ADMIN_USER, hashed_password=get_password_hash(ADMIN_PASS)))
+        hashed_pwd = get_password_hash(ADMIN_PASS)
+        db.add(UserDB(username=ADMIN_USER, hashed_password=hashed_pwd))
         db.commit()
     db.close()
 
