@@ -482,24 +482,25 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* ABOUT */}
-        <section id="about" className="bg-white text-black py-24 px-6">
-          <div className="container mx-auto grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-extrabold text-blue-900 mb-6 leading-tight">About <br />Songbird Columbia</h2>
-              <p className="text-gray-600 text-lg mb-6 leading-relaxed">We specialize in landing pages, not bloated websites. We believe focus is the key to conversion.</p>
-              <div className="p-4 border-l-4 border-red-600 bg-gray-50 italic font-medium">
-                "When you work with us, you talk directly with the builder. No middleman, no confusion."
-              </div>
-            </div>
-            <div className="flex justify-center">
-              <div className="bg-blue-900 text-white p-10 md:p-16 rounded-xl text-center w-full max-w-sm shadow-2xl">
-                <span className="block text-7xl font-black mb-2">$300</span>
-                <span className="uppercase tracking-[4px] font-bold text-red-600">Flat Price</span>
-              </div>
-            </div>
-          </div>
-        </section>
+{/* ABOUT */}
+<section id="about" className="bg-white text-black py-24 px-6">
+  <div className="container mx-auto grid md:grid-cols-2 gap-16 items-center">
+    <div>
+      <h2 className="text-4xl md:text-5xl font-extrabold text-blue-900 mb-6 leading-tight">About <br />Songbird Columbia</h2>
+      <p className="text-gray-600 text-lg mb-6 leading-relaxed">We specialize in landing pages, not bloated websites. We believe focus is the key to conversion.</p>
+      <div className="p-4 border-l-4 border-red-600 bg-gray-50 italic font-medium">
+        "When you work with us, you talk directly with the builder. No middleman, no confusion."
+      </div>
+    </div>
+    <div className="flex justify-center">
+      <div className="bg-blue-900 text-white p-10 md:p-16 rounded-xl text-center w-full max-w-sm shadow-2xl">
+        {/* ACÁ CAMBIAMOS EL PRECIO */}
+        <span className="block text-7xl font-black mb-2">$700</span> 
+        <span className="uppercase tracking-[4px] font-bold text-red-600">Flat Price</span>
+      </div>
+    </div>
+  </div>
+</section>
 
         {/* FAQ */}
         <section id="faq" className="py-24 px-6 bg-blue-900 text-white">
@@ -508,7 +509,7 @@ const LandingPage = () => {
             <div className="space-y-4">
               {[
                 { q: "Why only landing pages?", a: "Because focus converts. A single goal yields better results." },
-                { q: "Is $300 final?", a: "Yes, it's a flat price for a professional landing page." },
+                { q: "Is $700 final?", a: "Yes, it's a flat price for a professional landing page." },
                 { q: "Do you offer revisions?", a: "Yes, we iterate until you're happy with the result." },
                 { q: "Who do I talk to?", a: "You talk directly with the builder of your site." }
               ].map((item, index) => (
