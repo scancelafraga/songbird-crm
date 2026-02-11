@@ -113,15 +113,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 @app.on_event("startup")
 def startup_event():
     db = SessionLocal()
-    # CAMBIAMOS EL NOMBRE PARA FORZAR UNO NUEVO
-    ADMIN_USER = "admin_final"  
-    ADMIN_PASS = "Songbird2026" 
+    # Usamos variables limpias
+    NEW_USER = "alfredo_76!SongBird_Columbia_YeahYeah"
+    NEW_PASS = "SongbirdColumbia!2026..senegal_origami" 
     
-    user = db.query(UserDB).filter(UserDB.username == ADMIN_USER).first()
+    user = db.query(UserDB).filter(UserDB.username == NEW_USER).first()
     if not user:
-        print(f"--- CREATING SUPER ADMIN: {ADMIN_USER} ---")
-        hashed_pwd = get_password_hash(ADMIN_PASS)
-        db.add(UserDB(username=ADMIN_USER, hashed_password=hashed_pwd))
+        print(f"--- CREATING NEW ADMIN ---")
+        db.add(UserDB(username=NEW_USER, hashed_password=get_password_hash(NEW_PASS)))
         db.commit()
     db.close()
 
