@@ -494,7 +494,7 @@ const LandingPage = () => {
     <div className="flex justify-center">
       <div className="bg-blue-900 text-white p-10 md:p-16 rounded-xl text-center w-full max-w-sm shadow-2xl">
         {/* ACÁ CAMBIAMOS EL PRECIO */}
-        <span className="block text-7xl font-black mb-2">$700</span> 
+        <span className="block text-7xl font-black mb-2">$900</span> 
         <span className="uppercase tracking-[4px] font-bold text-black-600">Flat Price</span>
       </div>
     </div>
@@ -508,7 +508,7 @@ const LandingPage = () => {
             <div className="space-y-4">
               {[
                 { q: "Why only landing pages?", a: "Because focus converts. A single goal yields better results." },
-                { q: "Is $700 final?", a: "Yes, it's a flat price for a professional landing page." },
+                { q: "Is $900 final?", a: "Yes, it's a flat price for a professional landing page." },
                 { q: "Do you offer revisions?", a: "Yes, we iterate until you're happy with the result." },
                 { q: "Who do I talk to?", a: "You talk directly with the builder of your site." }
               ].map((item, index) => (
